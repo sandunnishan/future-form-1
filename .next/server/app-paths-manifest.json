@@ -2,7 +2,7 @@
   "/page": "app/page.js",
   "/reviewers/page": "app/reviewers/page.js",
   "/about/page": "app/about/page.js",
-  "/articles/page": "app/articles/page.js",
   "/admin/page": "app/admin/page.js",
+  "/admin/portal/page": "app/admin/portal/page.js",
   "/articles/[id]/page": "app/articles/[id]/page.js"
 }
