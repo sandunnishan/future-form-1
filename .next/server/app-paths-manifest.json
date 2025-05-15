@@ -2,5 +2,6 @@
   "/page": "app/page.js",
   "/authors/page": "app/authors/page.js",
   "/reviewers/page": "app/reviewers/page.js",
-  "/policy/page": "app/policy/page.js"
+  "/policy/page": "app/policy/page.js",
+  "/articles/page": "app/articles/page.js"
 }
