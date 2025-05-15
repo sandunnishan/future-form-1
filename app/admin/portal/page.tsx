@@ -399,7 +399,7 @@ export default function AdminPortal() {
                             render={({ field }) => (
                               <FormItem className="flex-1">
                                 <FormControl>
-                                  <Input  className="w-[400px]" placeholder="Author title" {...field} />
+                                  <Input   placeholder="Author title" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
