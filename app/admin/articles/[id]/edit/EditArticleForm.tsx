@@ -93,7 +93,7 @@ const mockArticle = {
   ],
 };
 
-export default function EditArticlePage({ params }: { params: { id: string } }) {
+export default function EditArticleForm({ articleId }: { articleId: string }) {
   const router = useRouter();
   const [currentTag, setCurrentTag] = useState('');
   const [isLoading, setIsLoading] = useState(true);
