@@ -27,12 +27,12 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
   FileText,
   Clock,
-  Users
+  Users,
+  UserPlus
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -72,7 +72,6 @@ import {
 const authorSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   title: z.string().min(2, 'Title must be at least 2 characters'),
-  bio: z.string().min(10, 'Bio must be at least 10 characters'),
   image: z.string().optional(),
 });
 
@@ -121,10 +120,15 @@ export default function AdminPortal() {
       topics: [],
       description: '',
       abstract: '',
-      authors: [{ name: '', title: '', bio: '', image: '' }],
+      authors: [{ name: '', title: '', image: '' }],
       document: '',
       image: '',
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "authors"
   });
 
   const handleLogout = () => {
@@ -195,21 +199,39 @@ export default function AdminPortal() {
               <CardContent>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Topic and Description in one line */}
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Title</FormLabel>
+                            <FormLabel>Topic</FormLabel>
                             <FormControl>
-                              <Input placeholder="Article title" {...field} />
+                              <Input placeholder="Article topic" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
 
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Brief description" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Category and Topics */}
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="category"
@@ -233,58 +255,41 @@ export default function AdminPortal() {
                           </FormItem>
                         )}
                       />
+
+                      <FormField
+                        control={form.control}
+                        name="topics"
+                        render={() => (
+                          <FormItem>
+                            <FormLabel>Topics</FormLabel>
+                            <FormControl>
+                              <div className="space-y-2">
+                                <Input
+                                  placeholder="Type and press Enter to add topics"
+                                  value={currentTag}
+                                  onChange={(e) => setCurrentTag(e.target.value)}
+                                  onKeyDown={handleAddTag}
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  {form.watch('topics')?.map((topic, index) => (
+                                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                      {topic}
+                                      <X
+                                        className="h-3 w-3 cursor-pointer"
+                                        onClick={() => removeTag(topic)}
+                                      />
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
 
-                    <FormField
-                      control={form.control}
-                      name="topics"
-                      render={() => (
-                        <FormItem>
-                          <FormLabel>Topics</FormLabel>
-                          <FormControl>
-                            <div className="space-y-2">
-                              <Input
-                                placeholder="Type and press Enter to add topics"
-                                value={currentTag}
-                                onChange={(e) => setCurrentTag(e.target.value)}
-                                onKeyDown={handleAddTag}
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                {form.watch('topics')?.map((topic, index) => (
-                                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                    {topic}
-                                    <X
-                                      className="h-3 w-3 cursor-pointer"
-                                      onClick={() => removeTag(topic)}
-                                    />
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Brief description of the article" 
-                              className="h-20"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
+                    {/* Abstract */}
                     <FormField
                       control={form.control}
                       name="abstract"
@@ -303,18 +308,99 @@ export default function AdminPortal() {
                       )}
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Authors Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Authors</FormLabel>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => append({ name: '', title: '', image: '' })}
+                        >
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Add Author
+                        </Button>
+                      </div>
+
+                      {fields.map((field, index) => (
+                        <div key={field.id} className="flex items-end gap-4">
+                          <FormField
+                            control={form.control}
+                            name={`authors.${index}.name`}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormControl>
+                                  <Input placeholder="Author name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`authors.${index}.title`}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormControl>
+                                  <Input placeholder="Author title" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`authors.${index}.image`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      className="w-[200px]"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) field.onChange(file.name);
+                                      }}
+                                    />
+                                    {index > 0 && (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => remove(index)}
+                                        className="text-destructive"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* File Uploads */}
+                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="document"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Document (PDF)</FormLabel>
+                            <FormLabel>Document Upload</FormLabel>
                             <FormControl>
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center gap-2">
                                 <Input
                                   type="file"
-                                  accept=".pdf"
+                                  accept=".pdf,.doc,.docx"
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) field.onChange(file.name);
@@ -337,7 +423,7 @@ export default function AdminPortal() {
                           <FormItem>
                             <FormLabel>Cover Image</FormLabel>
                             <FormControl>
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center gap-2">
                                 <Input
                                   type="file"
                                   accept="image/*"
@@ -356,87 +442,6 @@ export default function AdminPortal() {
                         )}
                       />
                     </div>
-
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base">Author Details</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="authors.0.name"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Author name" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="authors.0.title"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Author title" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <FormField
-                          control={form.control}
-                          name="authors.0.bio"
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Bio</FormLabel>
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Author biography" 
-                                  className="h-20"
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="authors.0.image"
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Author Image</FormLabel>
-                              <FormControl>
-                                <div className="flex items-center space-x-2">
-                                  <Input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) field.onChange(file.name);
-                                    }}
-                                  />
-                                  <Button type="button" size="icon" variant="outline">
-                                    <Upload className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </CardContent>
-                    </Card>
 
                     <div className="flex justify-end">
                       <Button type="submit">Submit Article</Button>

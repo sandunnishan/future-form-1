@@ -1580,6 +1580,9 @@ video {
 .w-1\/4 {
   width: 25%;
 }
+.w-\[200px\] {
+  width: 200px;
+}
 .min-w-0 {
   min-width: 0px;
 }
