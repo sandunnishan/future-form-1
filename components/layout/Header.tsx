@@ -60,19 +60,19 @@ const Header = () => {
                   About Us
                 </Link>
               </DropdownMenuItem>
+               <DropdownMenuItem>
+                <Link href="/authors" className="w-full">
+                  For Authors
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <Link href="/reviewers" className="w-full">
                   For Reviewers
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href="/guidelines" className="w-full">
-                  Author Guidelines
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href="/ethics" className="w-full">
-                  Publication Ethics
+                <Link href="/policy" className="w-full">
+                  Policy
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
