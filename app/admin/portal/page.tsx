@@ -422,21 +422,7 @@ export default function AdminPortal() {
                                         if (file) field.onChange(file.name);
                                       }}
                                     />
-                                    { (
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => remove(index)}
-                                        className="text-destructive"
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                                <FormField
+                                    <FormField
                       control={form.control}
                       name="abstract"
                       render={({ field }) => (
@@ -451,6 +437,21 @@ export default function AdminPortal() {
                           </FormControl>
                           <FormMessage />
                         </FormItem>
+                                    { (
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => remove(index)}
+                                        className="text-destructive"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                                
                               </FormItem>
                             )}
                           />
