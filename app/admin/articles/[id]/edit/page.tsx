@@ -27,6 +27,17 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
+// Add generateStaticParams export
+export async function generateStaticParams() {
+  // In a real application, you would fetch these IDs from your data source
+  // For now, we'll return a static list of IDs
+  return [
+    { id: '1' },
+    { id: '2' },
+    { id: '3' }
+  ];
+}
+
 const authorSchema = z.object({
   image: z.string().optional(),
   name: z.string().min(2, 'Name must be at least 2 characters'),
