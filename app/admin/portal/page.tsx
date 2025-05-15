@@ -15,7 +15,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Plus, Upload, X } from 'lucide-react';
+import { 
+  LogOut, 
+  Plus, 
+  Upload, 
+  X, 
+  Edit, 
+  Trash2, 
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal
+} from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -27,8 +38,40 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-// Define the validation schema
 const authorSchema = z.object({
   image: z.string().optional(),
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -58,11 +101,32 @@ const articleSchema = z.object({
 
 type ArticleFormValues = z.infer<typeof articleSchema>;
 
+const mockArticles = [
+  {
+    id: '1',
+    title: 'The Future of Artificial Intelligence in Healthcare',
+    authors: ['Dr. Sarah Chen', 'Dr. James Wilson'],
+    date: '2024-03-15',
+    status: true,
+    featured: true,
+  },
+  {
+    id: '2',
+    title: 'Sustainable Energy Solutions for Urban Development',
+    authors: ['Prof. Michael Brown'],
+    date: '2024-03-14',
+    status: true,
+    featured: false,
+  },
+];
+
 export default function AdminPortal() {
   const router = useRouter();
   const [currentTag, setCurrentTag] = useState('');
+  const [articles, setArticles] = useState(mockArticles);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Initialize form
   const form = useForm<ArticleFormValues>({
     resolver: zodResolver(articleSchema),
     defaultValues: {
@@ -71,7 +135,6 @@ export default function AdminPortal() {
     },
   });
 
-  // Setup field array for authors
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'authors',
@@ -95,8 +158,28 @@ export default function AdminPortal() {
     form.setValue('coveringAreas', currentAreas.filter(tag => tag !== tagToRemove));
   };
 
+  const handleStatusChange = (articleId: string, newStatus: boolean) => {
+    setArticles(articles.map(article => 
+      article.id === articleId ? { ...article, status: newStatus } : article
+    ));
+  };
+
+  const handleFeaturedChange = (articleId: string, newFeatured: boolean) => {
+    setArticles(articles.map(article => 
+      article.id === articleId ? { ...article, featured: newFeatured } : article
+    ));
+  };
+
+  const handleDelete = (articleId: string) => {
+    setArticles(articles.filter(article => article.id !== articleId));
+  };
+
+  const totalPages = Math.ceil(articles.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentArticles = articles.slice(startIndex, endIndex);
+
   const onSubmit = (data: ArticleFormValues) => {
-    // Handle form submission
     console.log(data);
   };
 
@@ -111,7 +194,7 @@ export default function AdminPortal() {
           </Button>
         </div>
 
-        <Tabs defaultValue="new-article" className="space-y-6">
+        <Tabs defaultValue="manage-articles" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="new-article">Add New Article</TabsTrigger>
             <TabsTrigger value="manage-articles">Article Management</TabsTrigger>
@@ -225,7 +308,6 @@ export default function AdminPortal() {
                         )}
                       />
 
-                      {/* Document Upload */}
                       <FormField
                         control={form.control}
                         name="document"
@@ -262,7 +344,6 @@ export default function AdminPortal() {
                         )}
                       />
 
-                      {/* Reading Time */}
                       <FormField
                         control={form.control}
                         name="readingTime"
@@ -277,7 +358,6 @@ export default function AdminPortal() {
                         )}
                       />
 
-                      {/* Image Upload */}
                       <FormField
                         control={form.control}
                         name="image"
@@ -350,7 +430,6 @@ export default function AdminPortal() {
                             </div>
 
                             <div className="space-y-4">
-                              {/* Author Image */}
                               <FormField
                                 control={form.control}
                                 name={`authors.${index}.image`}
@@ -387,7 +466,6 @@ export default function AdminPortal() {
                                 )}
                               />
 
-                              {/* Author Name */}
                               <FormField
                                 control={form.control}
                                 name={`authors.${index}.name`}
@@ -402,7 +480,6 @@ export default function AdminPortal() {
                                 )}
                               />
 
-                              {/* Author Title */}
                               <FormField
                                 control={form.control}
                                 name={`authors.${index}.title`}
@@ -417,7 +494,6 @@ export default function AdminPortal() {
                                 )}
                               />
 
-                              {/* Author About */}
                               <FormField
                                 control={form.control}
                                 name={`authors.${index}.about`}
@@ -451,10 +527,135 @@ export default function AdminPortal() {
           <TabsContent value="manage-articles">
             <Card>
               <CardHeader>
-                <CardTitle>Article Management</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Article Management</CardTitle>
+                  <div className="relative w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search articles..." className="pl-8" />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Article management features coming soon...</p>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Article Name</TableHead>
+                        <TableHead>Authors</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Featured</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {currentArticles.map((article) => (
+                        <TableRow key={article.id}>
+                          <TableCell>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger className="block truncate max-w-[300px]">
+                                  {article.title}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{article.title}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
+                          <TableCell>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  {article.authors[0]} {article.authors.length > 1 && `+${article.authors.length - 1}`}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <ul>
+                                    {article.authors.map((author, index) => (
+                                      <li key={index}>{author}</li>
+                                    ))}
+                                  </ul>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
+                          <TableCell>{new Date(article.date).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Switch
+                              checked={article.status}
+                              onCheckedChange={(checked) => handleStatusChange(article.id, checked)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Checkbox
+                              checked={article.featured}
+                              onCheckedChange={(checked) => handleFeaturedChange(article.id, !!checked)}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => router.push(`/admin/articles/${article.id}/edit`)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" size="icon">
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Article</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this article? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(article.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1} to {Math.min(endIndex, articles.length)} of {articles.length} articles
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
