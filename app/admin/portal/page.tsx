@@ -436,6 +436,21 @@ export default function AdminPortal() {
                                   </div>
                                 </FormControl>
                                 <FormMessage />
+                                <FormField
+                      control={form.control}
+                      name="abstract"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Abstract</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Article abstract" 
+                              className="h-32"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                               </FormItem>
                             )}
                           />
