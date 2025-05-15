@@ -422,7 +422,7 @@ export default function AdminPortal() {
                                         if (file) field.onChange(file.name);
                                       }}
                                     />
-                                    {index > 0 && (
+                                    { (
                                       <Button
                                         type="button"
                                         variant="ghost"
