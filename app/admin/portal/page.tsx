@@ -422,21 +422,7 @@ export default function AdminPortal() {
                                         if (file) field.onChange(file.name);
                                       }}
                                     />
-                                    <FormField
-                      control={form.control}
-                      name="abstract"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Abstract</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Article abstract" 
-                              className="h-32"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                                    
                                     { (
                                       <Button
                                         type="button"
