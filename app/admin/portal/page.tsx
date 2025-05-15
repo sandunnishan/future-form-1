@@ -261,7 +261,7 @@ export default function AdminPortal() {
                         name="topics"
                         render={() => (
                           <FormItem>
-                            <FormLabel>Topics</FormLabel>
+                            <FormLabel>Covering Areas</FormLabel>
                             <FormControl>
                               <div className="space-y-2">
                                 <Input
