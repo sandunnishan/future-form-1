@@ -1,3 +1,4 @@
+// app/admin/articles/[id]/edit/page.tsx
 import EditArticleForm from './EditArticleForm';
 
 export async function generateStaticParams() {
@@ -8,6 +9,6 @@ export async function generateStaticParams() {
   ];
 }
 
-export default function EditArticlePage({ params }: { params: { id: string } }) {
+export default function EditArticleEditPage({ params }: { params: { id: string } }) {
   return <EditArticleForm articleId={params.id} />;
 }
