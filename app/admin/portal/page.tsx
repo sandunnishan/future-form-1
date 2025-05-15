@@ -27,7 +27,7 @@ import {
   ChevronRight,
   MoreHorizontal
 } from 'lucide-react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -47,14 +47,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -72,34 +64,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const authorSchema = z.object({
-  image: z.string().optional(),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  title: z.string().min(2, 'Title must be at least 2 characters'),
-  about: z.string().min(10, 'About section must be at least 10 characters'),
-});
-
-const articleSchema = z.object({
-  category: z.string({
-    required_error: 'Please select a category',
-  }),
-  coveringAreas: z.array(z.string()).min(1, 'At least one covering area is required'),
-  topic: z.string()
-    .min(5, 'Topic must be at least 5 characters')
-    .max(200, 'Topic must not exceed 200 characters'),
-  smallDescription: z.string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(500, 'Description must not exceed 500 characters'),
-  abstract: z.string()
-    .min(100, 'Abstract must be at least 100 characters')
-    .max(5000, 'Abstract must not exceed 5000 characters'),
+const formSchema = z.object({
+  title: z.string().min(5, 'Title must be at least 5 characters'),
+  category: z.string().min(1, 'Please select a category'),
+  topics: z.array(z.string()).min(1, 'At least one topic is required'),
+  abstract: z.string().min(100, 'Abstract must be at least 100 characters'),
+  authors: z.string().min(2, 'Author information is required'),
   document: z.string().optional(),
-  readingTime: z.number().optional(),
   image: z.string().optional(),
-  authors: z.array(authorSchema).min(1, 'At least one author is required'),
 });
-
-type ArticleFormValues = z.infer<typeof articleSchema>;
 
 const mockArticles = [
   {
@@ -127,17 +100,17 @@ export default function AdminPortal() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const form = useForm<ArticleFormValues>({
-    resolver: zodResolver(articleSchema),
+  const form = useForm({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      coveringAreas: [],
-      authors: [{ image: '', name: '', title: '', about: '' }],
+      title: '',
+      category: '',
+      topics: [],
+      abstract: '',
+      authors: '',
+      document: '',
+      image: '',
     },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'authors',
   });
 
   const handleLogout = () => {
@@ -147,15 +120,15 @@ export default function AdminPortal() {
 
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && currentTag.trim() !== '') {
-      const currentAreas = form.getValues('coveringAreas');
-      form.setValue('coveringAreas', [...currentAreas, currentTag.trim()]);
+      const currentTopics = form.getValues('topics') || [];
+      form.setValue('topics', [...currentTopics, currentTag.trim()]);
       setCurrentTag('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    const currentAreas = form.getValues('coveringAreas');
-    form.setValue('coveringAreas', currentAreas.filter(tag => tag !== tagToRemove));
+    const currentTopics = form.getValues('topics');
+    form.setValue('topics', currentTopics.filter(tag => tag !== tagToRemove));
   };
 
   const handleStatusChange = (articleId: string, newStatus: boolean) => {
@@ -179,7 +152,7 @@ export default function AdminPortal() {
   const endIndex = startIndex + itemsPerPage;
   const currentArticles = articles.slice(startIndex, endIndex);
 
-  const onSubmit = (data: ArticleFormValues) => {
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
     console.log(data);
   };
 
@@ -207,11 +180,22 @@ export default function AdminPortal() {
               </CardHeader>
               <CardContent>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    {/* Article Details */}
-                    <div className="space-y-6">
-                      <h3 className="text-lg font-semibold">📌 Article Details</h3>
-                      
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Article title" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                       <FormField
                         control={form.control}
                         name="category"
@@ -235,123 +219,93 @@ export default function AdminPortal() {
                           </FormItem>
                         )}
                       />
+                    </div>
 
-                      <FormItem>
-                        <FormLabel>Covering Areas</FormLabel>
-                        <FormControl>
-                          <div className="space-y-2">
-                            <Input
-                              placeholder="Type and press Enter to add tags"
-                              value={currentTag}
-                              onChange={(e) => setCurrentTag(e.target.value)}
-                              onKeyDown={handleAddTag}
-                            />
-                            <div className="flex flex-wrap gap-2">
-                              {form.watch('coveringAreas').map((tag, index) => (
-                                <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                  {tag}
-                                  <X
-                                    className="h-3 w-3 cursor-pointer"
-                                    onClick={() => removeTag(tag)}
-                                  />
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-
-                      <FormField
-                        control={form.control}
-                        name="topic"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Topic</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Article topic" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="smallDescription"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Small Description</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Brief description of the article" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="abstract"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Abstract</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Article abstract" 
-                                className="min-h-[200px]" 
-                                {...field} 
+                    <FormField
+                      control={form.control}
+                      name="topics"
+                      render={() => (
+                        <FormItem>
+                          <FormLabel>Topics</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <Input
+                                placeholder="Type and press Enter to add topics"
+                                value={currentTag}
+                                onChange={(e) => setCurrentTag(e.target.value)}
+                                onKeyDown={handleAddTag}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                              <div className="flex flex-wrap gap-2">
+                                {form.watch('topics')?.map((topic, index) => (
+                                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                    {topic}
+                                    <X
+                                      className="h-3 w-3 cursor-pointer"
+                                      onClick={() => removeTag(topic)}
+                                    />
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
+                    <FormField
+                      control={form.control}
+                      name="abstract"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Abstract</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Article abstract" 
+                              className="min-h-[100px]" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="authors"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Authors</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Author names (comma-separated)" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
                         name="document"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Full Document (Optional)</FormLabel>
+                            <FormLabel>Document (PDF)</FormLabel>
                             <FormControl>
-                              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md">
-                                <div className="space-y-1 text-center">
-                                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                  <div className="flex text-sm text-gray-600">
-                                    <label className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80">
-                                      <span>Upload a file</span>
-                                      <input 
-                                        type="file" 
-                                        className="sr-only" 
-                                        accept=".pdf"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                            field.onChange(file.name);
-                                          }
-                                        }}
-                                      />
-                                    </label>
-                                    <p className="pl-1">or drag and drop</p>
-                                  </div>
-                                  <p className="text-xs text-gray-500">PDF up to 10MB</p>
-                                </div>
+                              <div className="flex items-center space-x-2">
+                                <Input
+                                  type="file"
+                                  accept=".pdf"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) field.onChange(file.name);
+                                  }}
+                                />
                               </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="readingTime"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Reading Time</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Auto-calculated" disabled {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -363,30 +317,17 @@ export default function AdminPortal() {
                         name="image"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Image</FormLabel>
+                            <FormLabel>Cover Image</FormLabel>
                             <FormControl>
-                              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md">
-                                <div className="space-y-1 text-center">
-                                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                  <div className="flex text-sm text-gray-600">
-                                    <label className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80">
-                                      <span>Upload an image</span>
-                                      <input 
-                                        type="file" 
-                                        className="sr-only" 
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                            field.onChange(file.name);
-                                          }
-                                        }}
-                                      />
-                                    </label>
-                                    <p className="pl-1">or drag and drop</p>
-                                  </div>
-                                  <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                                </div>
+                              <div className="flex items-center space-x-2">
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) field.onChange(file.name);
+                                  }}
+                                />
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -395,128 +336,8 @@ export default function AdminPortal() {
                       />
                     </div>
 
-                    {/* Authors Details */}
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">👥 Author(s) Details</h3>
-                        <Button
-                          type="button"
-                          onClick={() => append({ image: '', name: '', title: '', about: '' })}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Author
-                        </Button>
-                      </div>
-
-                      {fields.map((field, index) => (
-                        <Card key={field.id}>
-                          <CardContent className="pt-6">
-                            <div className="flex justify-between items-center mb-4">
-                              <h4 className="font-medium">Author {index + 1}</h4>
-                              {index > 0 && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => remove(index)}
-                                  className="text-destructive"
-                                >
-                                  <X className="h-4 w-4 mr-2" />
-                                  Remove
-                                </Button>
-                              )}
-                            </div>
-
-                            <div className="space-y-4">
-                              <FormField
-                                control={form.control}
-                                name={`authors.${index}.image`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Image</FormLabel>
-                                    <FormControl>
-                                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md">
-                                        <div className="space-y-1 text-center">
-                                          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                                          <div className="flex text-sm text-gray-600">
-                                            <label className="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80">
-                                              <span>Upload an image</span>
-                                              <input 
-                                                type="file" 
-                                                className="sr-only" 
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                  const file = e.target.files?.[0];
-                                                  if (file) {
-                                                    field.onChange(file.name);
-                                                  }
-                                                }}
-                                              />
-                                            </label>
-                                            <p className="pl-1">or drag and drop</p>
-                                          </div>
-                                          <p className="text-xs text-gray-500">PNG, JPG up to 2MB</p>
-                                        </div>
-                                      </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`authors.${index}.name`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Name</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Author's name" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`authors.${index}.title`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Title</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Professional title" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`authors.${index}.about`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>About Author</FormLabel>
-                                    <FormControl>
-                                      <Textarea placeholder="Brief bio" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-
                     <div className="flex justify-end">
-                      <Button type="submit" size="lg">
-                        Submit Article
-                      </Button>
+                      <Button type="submit">Submit Article</Button>
                     </div>
                   </form>
                 </Form>
