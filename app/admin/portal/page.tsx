@@ -27,7 +27,10 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal
+  MoreHorizontal,
+  FileText,
+  Clock,
+  Users
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -66,12 +69,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+const authorSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  title: z.string().min(2, 'Title must be at least 2 characters'),
+  bio: z.string().min(10, 'Bio must be at least 10 characters'),
+  image: z.string().optional(),
+});
+
 const formSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
   category: z.string().min(1, 'Please select a category'),
   topics: z.array(z.string()).min(1, 'At least one topic is required'),
+  description: z.string().min(50, 'Description must be at least 50 characters'),
   abstract: z.string().min(100, 'Abstract must be at least 100 characters'),
-  authors: z.string().min(2, 'Author information is required'),
+  authors: z.array(authorSchema).min(1, 'At least one author is required'),
   document: z.string().optional(),
   image: z.string().optional(),
 });
@@ -108,8 +119,9 @@ export default function AdminPortal() {
       title: '',
       category: '',
       topics: [],
+      description: '',
       abstract: '',
-      authors: '',
+      authors: [{ name: '', title: '', bio: '', image: '' }],
       document: '',
       image: '',
     },
@@ -257,14 +269,14 @@ export default function AdminPortal() {
 
                     <FormField
                       control={form.control}
-                      name="abstract"
+                      name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Abstract</FormLabel>
+                          <FormLabel>Description</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Article abstract" 
-                              className="min-h-[100px]" 
+                              placeholder="Brief description of the article" 
+                              className="h-20"
                               {...field} 
                             />
                           </FormControl>
@@ -275,13 +287,14 @@ export default function AdminPortal() {
 
                     <FormField
                       control={form.control}
-                      name="authors"
+                      name="abstract"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Authors</FormLabel>
+                          <FormLabel>Abstract</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Author names (comma-separated)" 
+                            <Textarea 
+                              placeholder="Article abstract" 
+                              className="h-32"
                               {...field} 
                             />
                           </FormControl>
@@ -307,6 +320,9 @@ export default function AdminPortal() {
                                     if (file) field.onChange(file.name);
                                   }}
                                 />
+                                <Button type="button" size="icon" variant="outline">
+                                  <Upload className="h-4 w-4" />
+                                </Button>
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -330,6 +346,9 @@ export default function AdminPortal() {
                                     if (file) field.onChange(file.name);
                                   }}
                                 />
+                                <Button type="button" size="icon" variant="outline">
+                                  <Upload className="h-4 w-4" />
+                                </Button>
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -337,6 +356,87 @@ export default function AdminPortal() {
                         )}
                       />
                     </div>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Author Details</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="authors.0.name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Author name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="authors.0.title"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Author title" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="authors.0.bio"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel>Bio</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Author biography" 
+                                  className="h-20"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="authors.0.image"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel>Author Image</FormLabel>
+                              <FormControl>
+                                <div className="flex items-center space-x-2">
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) field.onChange(file.name);
+                                    }}
+                                  />
+                                  <Button type="button" size="icon" variant="outline">
+                                    <Upload className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
 
                     <div className="flex justify-end">
                       <Button type="submit">Submit Article</Button>
