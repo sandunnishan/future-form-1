@@ -308,6 +308,61 @@ export default function AdminPortal() {
                       )}
                     />
 
+                     {/* File Uploads */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="document"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Document Upload</FormLabel>
+                            <FormControl>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="file"
+                                  accept=".pdf,.doc,.docx"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) field.onChange(file.name);
+                                  }}
+                                />
+                                <Button type="button" size="icon" variant="outline">
+                                  <Upload className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="image"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cover Image</FormLabel>
+                            <FormControl>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) field.onChange(file.name);
+                                  }}
+                                />
+                                <Button type="button" size="icon" variant="outline">
+                                  <Upload className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     {/* Authors Section */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -388,60 +443,7 @@ export default function AdminPortal() {
                       ))}
                     </div>
 
-                    {/* File Uploads */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="document"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Document Upload</FormLabel>
-                            <FormControl>
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="file"
-                                  accept=".pdf,.doc,.docx"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) field.onChange(file.name);
-                                  }}
-                                />
-                                <Button type="button" size="icon" variant="outline">
-                                  <Upload className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="image"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Cover Image</FormLabel>
-                            <FormControl>
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) field.onChange(file.name);
-                                  }}
-                                />
-                                <Button type="button" size="icon" variant="outline">
-                                  <Upload className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                   
 
                     <div className="flex justify-end">
                       <Button type="submit">Submit Article</Button>
