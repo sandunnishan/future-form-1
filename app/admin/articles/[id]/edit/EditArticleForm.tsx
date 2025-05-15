@@ -110,7 +110,7 @@ export default function EditArticleForm({ articleId }: { articleId: string }) {
       form.reset(mockArticle);
       setIsLoading(false);
     }, 500);
-  }, [params.id, form]);
+  }, [articleId, form]);
 
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && currentTag.trim() !== '') {
